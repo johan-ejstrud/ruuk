@@ -26,6 +26,44 @@ ggplot(befolkningsalder, aes(x=age, y=value)) +
 ggsave(file.path(img_dir, "johan_plot1.png"), width = 8, height = 6)
 
 
+
+dagtilbud <-
+  "OFXUKN1" %>%
+  get_px("daycare institutions" = px_all()) %>%
+  janitor::clean_names() %>%
+  filter(keyfigures == "Alle børn i dagtilbud",
+         daycare_institutions != "Alle dagtilbud") %>%
+  select(-keyfigures)
+
+ggplot(dagtilbud, aes(x = time, y = value, fill = daycare_institutions)) +
+  geom_col() +
+  theme(legend.title = element_blank())
+
+ggsave(file.path(img_dir, "johan_plot2.png"), width = 8, height = 6)
+
+
+
+energiforbrug <-
+  "https://bank.stat.gl:443/api/v1/da/Greenland/EN/EN20/ENX1ACT.px" %>%
+  statgl_fetch(time = px_all()) %>%
+  as_tibble() %>%
+  filter(type == 'Faktisk energiforbrug',
+         energivare != 'Alle energivarer') %>%
+  mutate(tid = as.numeric(tid),
+         value = replace_na(value, 0)) %>%
+  select(-type)
+
+ggplot(energiforbrug, aes(x=tid, y=value, fill=energivare)) +
+  geom_area() +
+  scale_x_continuous(expand = expansion()) +
+  scale_y_continuous(expand = expansion(mult = c(0, .1))) +
+  labs(title = 'Engergiforbrug',
+       x = NULL,
+       y = 'Terajoule'
+       )
+ggsave(file.path(img_dir, "johan_plot3.png"), width = 8, height = 6)
+
+
 valg_inatsisartut <-
   "SAXLANST" %>%
   get_px() %>%
@@ -52,7 +90,7 @@ ggplot(valg_inatsisartut, aes(x=time, y=percentage, color=votes_cast)) +
   scale_y_continuous(labels = scales::percent) +
   facet_wrap(~constituencies)
 
-ggsave(file.path(img_dir, "johan_plot3.png"), width = 16, height = 12)
+ggsave(file.path(img_dir, "johan_plot4.png"), width = 16, height = 12)
 
 
 library(sf)
