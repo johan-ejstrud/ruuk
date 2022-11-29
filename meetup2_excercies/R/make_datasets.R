@@ -1,7 +1,11 @@
+if (!require("tidyverse")) install.packages("tidyverse")
+if (!require("lubridate")) install.packages("lubridate")
+if (!require("devtools")) install.packages(c("devtools"))
+if (!require("statgl")) devtools::install_github("StatisticsGreenland/statgl")
+
 library(tidyverse)
 library(lubridate)
 library(statgl)
-library(maps)
 
 get_px <- function(px, ...){
   px %>%
@@ -91,7 +95,9 @@ under_medianindkomst <-
   "SOXOU01" %>%
   get_px("inventory variable" = px_all("Andel*")) %>%
   rename("variable" = inventory_variable, "time" = year) %>%
-  mutate(variable = variable %>% str_to_sentence())
+  mutate(variable = variable %>% str_to_sentence(),
+         value = value/1e2
+         )
 saveRDS_with_own_name(under_medianindkomst)
 
 
@@ -109,3 +115,17 @@ stemmeprocent <-
   select(time, value) %>%
   arrange(time)
 saveRDS_with_own_name(stemmeprocent)
+
+
+fangst_hellefisk <-
+  "FIX021" |>
+  get_px(species = 1, area = px_all(), form = px_all()) |>
+  mutate(time = as.integer(time))
+saveRDS_with_own_name(fangst_hellefisk)
+
+
+bnp <-
+  "NRX10" %>%
+  get_px(units = "K", account = "04") %>%
+  mutate(time = as.integer(aar), value = value/1e2, .keep = "used")
+saveRDS_with_own_name(bnp)
